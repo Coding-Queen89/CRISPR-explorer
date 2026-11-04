@@ -29,19 +29,32 @@ from undergraduates or researchers and/or developers not mastering in the field.
 
 ## Core Workflow
 
-01. Analyze existing tools and limitations
-02. Select genomic data source (Ensembl REST)
-03. Gene search module (Gene Name → DNA Sequence)
-04. gRNA candidate generation (NGG scan, both strands)
-05. Basic scoring (GC content, poly-T flag, PAM check)
-06. Explainability module (per-candidate rule breakdown)
-07. REST API (FastAPI)
-08. React frontend (input + results table)
-09. Visualizations (candidate table, filter status)
-10. Integration frontend ↔ backend
-11. Test with 2–3 example genes (BRCA1, TP53, etc.)
-12. Deploy to server
-13. Bug fixing and usability improvements
+Phase 0:
+00. Analyze existing tools and limitations
+
+Phase 1: gRNA Design — Backend
+01. Input: Gene name (e.g., HBA1) ✔️
+02. Ensembl REST API → Retrieve DNA sequence ✔️
+03. PAM scanning (NGG) on both strands ✔️
+04. Extract 20-nt candidates ✔️
+05. Calculate GC content and poly-T flags ✔️
+06. Output: List of candidates with rules (pass/fail) ✔️
+
+Phase 2: Sequence Comparator
+07. Input: Two FASTA sequences (wild-type vs. edited)
+08. Biopython PairwiseAligner
+09. Output: Mismatches, gaps, editing efficiency estimate
+
+Phase 3: ClinVar Annotation
+10. Input: Gene name or HGVS variant
+11. NCBI E-utilities API → Search ClinVar
+12. Output: Pathogenic variants and associated diseases
+
+Phase 4: Frontend
+13. Build React Frontend
+14. Connect FastAPI routes
+15. Test endpoints
+16. Deploy MVP draft
 
 
 ## Initial Resources
@@ -54,12 +67,15 @@ from undergraduates or researchers and/or developers not mastering in the field.
 
 The first version will:
 
-- taking FASTA sequence as an Input and calling the Ensembl API
+- take Gene Name as an Input and calling the Ensembl API
 - finding suitable gRNAs with their respective GC
 - Basic Visualization
+- Compare two FASTA sequences
+-
 
 ## Out of Scope
 
+- No .ab1/.scf processing
 - Genome-wide off-target search
 - Prediction of experimental guide efficiency or knockout success
 - Machine learning models of any kind
@@ -75,3 +91,4 @@ The first version will:
 - Gene editing tool
 - Disease correlation context for mutated genes (via ClinVar/VEP)
 - Advanced visualisation
+- Identifying and cancelling gRNA candidates in intron
