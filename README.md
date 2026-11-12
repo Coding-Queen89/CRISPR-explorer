@@ -41,20 +41,21 @@ Phase 1: gRNA Design — Backend
 06. Output: List of candidates with rules (pass/fail) ✔️
 
 Phase 2: Sequence Comparator
-07. Input: Two FASTA sequences (wild-type vs. edited)
-08. Biopython PairwiseAligner
-09. Output: Mismatches, gaps, editing efficiency estimate
+07. Input: Two FASTA sequences (wild-type vs. edited) ✔️
+08. Biopython PairwiseAligner ✔️
+09. Output: Mismatches, gaps, and indels ✔️
+10. Identify type of gene change and list the variant details ✔️
 
 Phase 3: ClinVar Annotation
-10. Input: Gene name or HGVS variant
-11. NCBI E-utilities API → Search ClinVar
-12. Output: Pathogenic variants and associated diseases
+11. Input: Gene name or HGVS variant
+12. NCBI E-utilities API → Search ClinVar
+13. Output: Pathogenic variants and associated diseases
 
 Phase 4: Frontend
-13. Build React Frontend
-14. Connect FastAPI routes
-15. Test endpoints
-16. Deploy MVP draft
+14. Build React Frontend
+15. Connect FastAPI routes
+16. Test endpoints
+17. Deploy MVP draft
 
 
 ## Initial Resources
@@ -92,3 +93,4 @@ The first version will:
 - Disease correlation context for mutated genes (via ClinVar/VEP)
 - Advanced visualisation
 - Identifying and cancelling gRNA candidates in intron
+- editing efficiency estimate (previously in step 10)

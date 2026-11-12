@@ -4,6 +4,9 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from DNA_sequence import find_gRNA_Candidates
+from FASTA_comparison import compare_sequences
+
+from schema import SequenceInput
 
 app = FastAPI()
 
@@ -84,8 +87,17 @@ def get_gRNA_Candidates(gene: str):
 
     return {
         "gene": position["display_name"],
+        "DNA_sequence": DNA_sequence,
         "candidates": candidates
     }
+
+@app.post("/FASTA_sequences")
+def compare_FASTA_seq(seqs: SequenceInput):
+    try:
+        result = compare_sequences(seqs.wildtype, seqs.edited)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail = str(e))
 
 #  Testen
 if __name__ == "__main__":
