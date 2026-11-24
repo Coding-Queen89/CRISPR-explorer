@@ -19,8 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ENSEMBL_SERVER = "https://rest.ensembl.org"
+ENSEMBL_SERVER = "https://rest.ensembl.org/"
 
+# Handles HTTPrequests to Ensembl REST API and returns JSON data from the API
 def get_json_data(url: str):
     for attempt in range(3):
         try:
@@ -37,6 +38,7 @@ def get_json_data(url: str):
             else:
                 raise HTTPException(status_code=500, detail=f"Failed to retrieve sequence after 3 attempts: {e}")
 
+#First step is to get the ENSEMBL ID of the gene from the gene name
 def get_gene_id(gene_name: str):
     xref_url = f"{ENSEMBL_SERVER}/xrefs/symbol/homo_sapiens/{gene_name}"
 
@@ -59,7 +61,7 @@ def get_gene_id(gene_name: str):
 
 
 def get_gene_seq(ensembl_id: str):
-
+    # seq_type = "cds"
     seq_url = f"{ENSEMBL_SERVER}/sequence/id/{ensembl_id}"
     try:
         seq_data = get_json_data(seq_url)
@@ -70,24 +72,51 @@ def get_gene_seq(ensembl_id: str):
 
 
 
-
-def get_gene_position(ensembl_id: str):
+def get_gene_info(ensembl_id: str):
     position_url = f"{ENSEMBL_SERVER}/lookup/id/{ensembl_id}"
-    return get_json_data(position_url)
+    try:
+        gene_info = get_json_data(position_url)
+        print(gene_info)
+        return gene_info
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 400:
+            raise HTTPException(status_code=404, detail= e)
+
+def get_canonical_seq(canonical_transcript: str):
+    canonical_url = f"{ENSEMBL_SERVER}/sequence/id/{canonical_transcript}"
+    try:
+        canonical_seq = get_json_data(canonical_url)
+        return canonical_seq.get("seq")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 400:
+            raise HTTPException(status_code=404, detail= e)
+
+def get_cds_seq(canonical_transcript: str):
+    cds_url = f"{ENSEMBL_SERVER}/sequence/id/{canonical_transcript}?type=cds"
+    try:
+        cds_seq = get_json_data(cds_url)
+        return cds_seq.get("seq")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 400:
+            raise HTTPException(status_code=404, detail= e)
 
 
 @app.get("/gRNA")
 def get_gRNA_Candidates(gene: str):
     gene_ID = get_gene_id(gene)
-    DNA_sequence = get_gene_seq(gene_ID)
-    position = get_gene_position(gene_ID)
+    cDNA_sequence = get_gene_seq(gene_ID)
+    gene_info = get_gene_info(gene_ID)
+    canonical_seq = get_canonical_seq(gene_info["canonical_transcript"].split(".")[0])
+    cds_seq = get_cds_seq(gene_info["canonical_transcript"].split(".")[0])
 
-    print(position)
-    candidates = find_gRNA_Candidates(DNA_sequence, position["start"], position["end"], position["seq_region_name"], position["strand"])
+    print(gene_info)
+    candidates = find_gRNA_Candidates(cDNA_sequence, canonical_seq, cds_seq, gene_info["start"], gene_info["end"], gene_info["seq_region_name"], gene_info["strand"])
 
     return {
-        "gene": position["display_name"],
-        "DNA_sequence": DNA_sequence,
+        "gene": gene_info["display_name"],
+        "cDNA_sequence": cDNA_sequence,
+        "canonical_seq": canonical_seq,
+        "cds_seq": cds_seq,
         "candidates": candidates
     }
 

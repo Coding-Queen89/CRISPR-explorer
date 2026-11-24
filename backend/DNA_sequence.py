@@ -3,8 +3,9 @@ Taking in the gene's DNA sequence, this program will find the possible guide RNA
 The Pam site will be the NGG on the forward and backward strand.
 """
 
-def find_gRNA_Candidates(seq: str, gene_start: int, gene_end: int, region: int, strand: int) -> list[dict]:
+def find_gRNA_Candidates(seq: str, canonical_seq: str, cds_seq:str, gene_start: int, gene_end: int, region: int, strand: int) -> list[dict]:
     candidates = []
+    rank = 0
     n = len(seq)
 
     # FINDING THE gRNA ON THE FORWARD STRAND. EXCEPT IF THE GIVEN GENE WAS ON THE BACKWARD STRAND
@@ -28,19 +29,22 @@ def find_gRNA_Candidates(seq: str, gene_start: int, gene_end: int, region: int, 
             has_poly_T = "TTTT" in gRNA  # 4 or more T trigger the RNA Polymerase to stop
 
             status = "fail"
+            rank += 1
             if gc_percentage >= 40 and gc_percentage <= 60 and not has_poly_T:
                 status = "pass"
 
-            candidates.append({
-                "sequence": gRNA,
-                "pam": pam,
-                "strand": "+" if strand == 1 else "-",
-                "position": genomic_position,
-                "gc_content": gc_percentage,
-                "poly_t": has_poly_T,
-                "explanation": ("More than 4 Thymine bases found in gRNA sequence, leading to an early cease of polymerasation from RNA Polymerase " if has_poly_T else "GC% not in range of 40 to 60, leading to either instablity or clumping of DNA.") if status == "fail" else None,
-                "status": status
-            })
+            if gRNA in cds_seq:
+                candidates.append({
+                    "rank": len(candidates),
+                    "sequence": gRNA,
+                    "pam": pam,
+                    "strand": "+" if strand == 1 else "-",
+                    "position": genomic_position,
+                    "gc_content": gc_percentage,
+                    "poly_t": has_poly_T,
+                    "explanation": ("More than 4 Thymine bases found in gRNA sequence, leading to an early cease of polymerasation from RNA Polymerase " if has_poly_T else "GC% not in range of 40 to 60, leading to either instablity or clumping of DNA.") if status == "fail" else None,
+                    "status": status
+                })
 
     """
     INSTEAD OF COMPLEMENTING THE ENTIRE STRAND, WE CAN LOOK FOR CCN ON THE FORWARD STRAND
@@ -72,19 +76,22 @@ def find_gRNA_Candidates(seq: str, gene_start: int, gene_end: int, region: int, 
             has_poly_T = "TTTT" in gRNA  # 4 or more T trigger the RNA Polymerase to stop
 
             status = "fail"
+            rank += 1
             if gc_percentage >= 40 and gc_percentage <= 60 and not has_poly_T:
                 status = "pass"
 
-            candidates.append({
-                "sequence": gRNA,
-                "pam": pam,
-                "strand": "-" if strand == 1 else "+",
-                "position": genomic_position,
-                "gc_content": gc_percentage,
-                "poly_t": has_poly_T,
-                "explanation": ("More than 4 Thymine bases found in gRNA sequence, leading to an early cease of polymerasation from RNA Polymerase " if has_poly_T else "GC% not in range of 40 to 60, leading to either instablity or clumping of DNA.") if status == "fail" else None,
-                "status": status
-            })
+            if gRNA in reverse_complement(cds_seq) or gRNA in cds_seq:
+                candidates.append({
+                    "rank": len(candidates),
+                    "sequence": gRNA,
+                    "pam": pam,
+                    "strand": "-" if strand == 1 else "+",
+                    "position": genomic_position,
+                    "gc_content": gc_percentage,
+                    "poly_t": has_poly_T,
+                    "explanation": ("More than 4 Thymine bases found in gRNA sequence, leading to an early cease of polymerasation from RNA Polymerase " if has_poly_T else "GC% not in range of 40 to 60, leading to either instablity or clumping of DNA.") if status == "fail" else None,
+                    "status": status
+                })
 
-    candidates.sort(key = lambda x : x["position"])
+    candidates.sort(key = lambda x : x["rank"])
     return candidates

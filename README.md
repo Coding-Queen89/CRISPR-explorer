@@ -46,6 +46,7 @@ Phase 2: Sequence Comparator
 09. Output: Mismatches, gaps, and indels ✔️
 10. Identify type of gene change and list the variant details ✔️
 
+11. Include canonical and cds sequences for the gene ✔️
 Phase 3: ClinVar Annotation
 11. Input: Gene name or HGVS variant
 12. NCBI E-utilities API → Search ClinVar
@@ -94,3 +95,6 @@ The first version will:
 - Advanced visualisation
 - Identifying and cancelling gRNA candidates in intron
 - editing efficiency estimate (previously in step 10)
+- Annotating tools with the right font and explanation
+- make the gene Search process faster
+- More annotations of the sequences in Phase 2
